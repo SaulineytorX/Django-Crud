@@ -1,0 +1,33 @@
+{% extends 'layouts/base.html' %} {% block content %}
+<main class="container">
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      {% if user.is_authenticated %}
+      <h1 class="text-center">Bienvenido {{user.username}}</h1>
+      {% endif %}
+      <h1 class="text-center display-3 py-5">Tareas {{title}}</h1>
+      <ul class="list-group ">
+        {% for task in tasks %}
+          <a class="list-group-item" href="{% url 'task_detail' task.id %}">
+            <header class="d-flex justify-content-between">
+              <h2 class="fw-bold">{{ task.title }}</h2>
+              <p>{{ task.user.username }}</p>
+            </header>
+            {% if task.important %}
+            <p class="text-success fw-bold">Importante</p>
+            {% else %}
+            <p class="text-warning fw-bold">No importante</p>
+            {% endif %}
+            <p >{{ task.description }}</p>
+            <p>Fecha de creación: {{ task.created }}</p>
+            {% if task.datecompleted is not null%}
+            <p class="fw-bold text-center">Tarea completada: {{ task.datecompleted }}</p>
+            {% endif %}
+          </a>
+        
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</main>
+{% endblock %}

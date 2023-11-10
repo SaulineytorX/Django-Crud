@@ -1,0 +1,720 @@
+////Creacion de proyecto/////////////
+**Ahora en este iniciamos de manera diferente, en este caso se llama django crud, y solo hemos importado la vista de signup creando la carpeta templates y ahi el signup.html:
+
+<h1>Singup</h1>
+
+<form method="POST" action="/signup/">
+    {% csrf_token %} {# This is very important for security reasons #}
+    {{form.as_p}}
+    <button>
+        Singup
+    </button>
+</form>
+
+**Urls.py:
+from django.contrib import admin
+from django.urls import path
+from tasks import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', views.home, name='hello'),
+    path('signup/', views.signup, name='signup'),
+]
+////////////////REGISTRO DE USUARIOS////////////
+**views:
+
+from django.shortcuts import render
+from django.http import HttpResponse
+from django.contrib.auth.forms import UserCreationForm # Crea un formulario de registro de usuario
+from django.contrib.auth.models import User # Modelo de usuario de Django
+# Create your views here.
+def home(request):
+	return render(request,'home.html')
+
+def signup(request):
+    if request.method == 'GET':
+        return render(request,'signup.html',{
+            'form':UserCreationForm()
+        })
+    else:
+        if request.POST['password1'] == request.POST['password2']:
+            try:
+                user = User.objects.create_user(
+                request.POST['username'],
+                password=request.POST['password1']
+                )
+                user.save()
+                return HttpResponse('Usuario creado')
+            except:
+                return HttpResponse('Usuario ya registrado')
+        return HttpResponse('Las contraseñas no coinciden')
+
+////////////////////Manejar Errores////////////
+
+Manejamos de mejor manera los errores desde el front end, es mas tedioso pero funcional:
+def signup(request):
+    if request.method == 'GET':
+        return render(request,'signup.html',{
+            'form':UserCreationForm()
+        })
+    else:
+        if request.POST['password1'] == request.POST['password2']:
+            try:
+                user = User.objects.create_user(
+                request.POST['username'],
+                password=request.POST['password1']
+                )
+                user.save()
+                return HttpResponse('Usuario creado')
+            except:
+                return render(request,'signup.html',{
+                    'form':UserCreationForm(),
+                    'error':'El usuario ya existe'
+                })
+        return render(request,'signup.html',{
+            'form':UserCreationForm(),
+            'error':'Las contraseñas no coinciden'
+        })
+
+**EN EL SINGUP.HTML agregamos el:
+{{error}}
+
+///////////////////LOGIN Y VISTA DE TAREAS//////
+
+**Hicimos cambios en cuanto a toda la parte del signup, principalmente agregamos los errores de integridad y el auth login:
+
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.contrib.auth.forms import UserCreationForm # Crea un formulario de registro de usuario
+from django.contrib.auth.models import User # Modelo de usuario de Django
+from django.contrib.auth import authenticate, login # Autenticación de usuario de Django
+from django.db import IntegrityError # Excepción de integridad de Django
+# Create your views here.
+def home(request):
+	return render(request,'home.html')
+
+def signup(request):
+    if request.method == 'GET':
+        return render(request,'signup.html',{
+            'form':UserCreationForm()
+        })
+    else:
+        if request.POST['password1'] == request.POST['password2']:
+            try:
+                user = User.objects.create_user(
+                request.POST['username'],
+                password=request.POST['password1']
+                )
+                user.save()
+                login(request,user)
+                return redirect('tasks')
+            except IntegrityError:
+                return render(request,'signup.html',{
+                    'form':UserCreationForm(),
+                    'error':'El usuario ya existe'
+                })
+        return render(request,'signup.html',{
+            'form':UserCreationForm(),
+            'error':'Las contraseñas no coinciden'
+        })
+        
+def tasks(request):
+    return render(request,'tasks.html')
+
+////////////////TEMPLATES Y CONDICIONALES//////////
+
+Usamos esta condicionl para detectar cuando el usuario esta registrado y cuando no esta activa su sesion, RECUERDA que se hace en el templates, layouts y base.html:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django Crud Saul</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'tasks' %}">Tareas</a></li>
+            
+            {% if user.is_authenticated %}
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+            <li><a href="{% url 'signup' %}">Signup</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    {% block content %}
+    {% endblock %}
+</body>
+</html>
+
+//////////////////LOGOUT/////////////////////
+*En views agregamos este:
+def signout(request):
+    logout(request)
+    return redirect('home')
+    
+*En urls agregamos la ruta de signout:
+path('logout/', views.signout, name='logout'),
+
+/////////////////LOGIN///////////////////////
+
+*En views.py agregamos esto para poder autenticar que el usuario existe y que guarde su sesion:
+
+def loginuser(request):
+    if request.method == 'GET':
+        return render(request,'login.html',{
+        'form':AuthenticationForm()
+    })
+    else:
+        user = authenticate(request,username=request.POST['username'],password=request.POST['password'])
+        if user is None: 
+            return render(request,'login.html',{
+            'form':AuthenticationForm(),
+            'error' : "Usuario o contraseña incorrecto"
+            })
+        else:
+            login(request,user)
+            return redirect('tasks')
+
+**Login.html:
+{% extends 'layouts/base.html' %}
+{% block content %}
+
+<h1>Login</h1>
+{{error}}
+<form action="" method="POST">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button>
+        Login
+    </button>
+</form>
+
+{% endblock %}
+
+**Se agrega esto en la url
+path('loging/',views.loginuser,name='login'),
+
+///////////////////// TASK MODEL////////////////
+
+***ORM significa Object Relational Mapping***
+
+**Creamos en el model la class Task:
+
+from django.db import models
+from django.contrib.auth.models import User
+# Create your models here.
+class Task(models.Model):
+    title = models.CharField(max_length=1000)
+    description = models.TextField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    datecompleted = models.DateTimeField(null=True,blank=True) # null=True,blank=True permite que el campo sea opcional
+    important = models.BooleanField(default=False) # default=False permite que el campo sea opcional y por defecto es False
+    user = models.ForeignKey(User,on_delete=models.CASCADE) # on_delete=models.CASCADE permite que al eliminar un usuario se eliminen todas sus tareas
+
+    def __str__(self):
+        return self.title
+
+**No debemos olvidar poner en el models.py y podemos concatenarle lo que queramos:
+
+def __str__(self):
+        return self.title + ' - by' + str(self.user.username)
+
+**corremos las makemigrations y migrate
+
+*****CREAMOS UN SUPERUSER**
+py manage.py createsuperuser
+Username (leave blank to use 'mercu'): saulineytor
+Email address: saulineytor@gmail.com
+Password: 
+Password (again):
+Superuser created successfully.
+
+**En admin.py agregamos el modelo Task:
+
+from django.contrib import admin
+from .models import Task
+# Register your models here.
+
+admin.site.register(Task)
+
+**Para poder ver la fecha de creacion por ejemplo solo tenemos que escribir lo siguiente:
+
+from django.contrib import admin
+from .models import Task
+# Register your models here.
+
+class TaskAdmin(admin.ModelAdmin):
+    readonly_fields=('created',)
+
+admin.site.register(Task,TaskAdmin)
+
+//////////////FORMULARIO DE TAREAS////////////
+**Nos centramos en la parte de crear en nuestra aplicacion de tasks, el forms.py:
+
+from django.forms import ModelForm
+from .models import Task
+class TaskForm(ModelForm):
+    class Meta:
+        model = Task
+        fields = ['title','description','important']
+
+
+**Tenemos el archivo create_task.html:
+{% extends 'layouts/base.html' %}
+{% block content %}
+
+<h1>Create Task</h1>
+
+<form action="/tasks/create" method="POST">
+{% csrf_token %}
+    {{form.as_p}}
+
+    <button>
+        Guardar tarea
+    </button>
+</form>
+
+{% endblock %}
+
+**La url quedaria:
+path('tasks/create', views.create_task, name='create_task'),
+
+**Y finalmente la view solo para ver el form quedaria asi:
+def create_task(request):
+    
+    if request.method == 'GET':
+        return render(request,'create_task.html',{
+        'form':TaskForm()
+    })
+    else:
+        return render(request,'create_task.html',{
+        'form':TaskForm()
+    })
+
+////////////GUARDAR LAS TAREAS///////////////
+
+
+**Para eso modificamos el create_task en views:
+def create_task(request):  
+    if request.method == 'GET':
+        return render(request,'create_task.html',{
+            'form':TaskForm
+        })
+    else:  
+        try:
+            form = TaskForm(request.POST)
+            newtask = form.save(commit=False)
+            newtask.user = request.user
+            newtask.save()
+            return redirect('tasks')
+        except ValueError: 
+            return render(request,'create_task.html',{
+                'form':TaskForm,
+                'error':'Los datos del formulario no son válidos',
+            })
+
+**La vista create_task.html quedo asi:
+{% extends 'layouts/base.html' %}
+{% block content %}
+
+<h1>Create Task</h1>
+{{error}}
+<form action="/tasks/create" method="POST">
+{% csrf_token %}
+    {{form.as_p}}
+
+    <button>
+        Guardar tarea
+    </button>
+</form>
+
+{% endblock %}
+
+/////////////LISTAR TAREAS////////////////
+
+*Asi quedo la vista tasks.html:
+{% extends 'layouts/base.html' %}
+{% block content %}
+<h1>Tasks</h1>
+
+{% for task in tasks %}
+    <ul>
+        <li>{{task.title}}</li>
+        <li>{{task.description}}</li>
+        <li>{{task.user.username}}</li>
+        {% if task.important %}
+            <li>Importante</li>
+        {% else %}
+            <li>No importante</li>
+        {% endif %}
+
+    </ul>
+{% endfor %}
+
+{% endblock %}
+
+*views.py:
+def tasks(request):
+    tasks= Task.objects.filter(user=request.user, datecompleted__isnull=True) # Filtra las tareas por usuario
+    return render(request,'tasks.html',
+        {
+        'tasks':tasks
+        })
+///////////////////////OBTENER TAREA/////////////
+
+
+*Asi queda nuestro urls.py:
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', views.home, name='home'),
+    path('signup/', views.signup, name='signup'),
+    path('tasks/', views.tasks, name='tasks'),
+    path('tasks/create', views.create_task, name='create_task'),
+    path('tasks/<int:task_id>/', views.task_detail, name='task_detail'), # Agrega la ruta para editar una tarea
+    path('logout/', views.signout, name='logout'),
+    path('loging/',views.loginuser,name='login'),
+]
+
+*Asi queda nuestro views.py:
+def task_detail(request,task_id):
+    task = get_object_or_404(Task, pk=task_id) # Obtiene la tarea por id e importa el modelo task
+    return render(request,'task_detail.html',{
+        'task':task
+    })
+
+*Asi queda nuestro task.html:
+{% extends 'layouts/base.html' %}
+{% block content %}
+    <h1>Tasks</h1>
+    <ul>
+        {% for task in tasks %}
+            <li>
+                <a href="{% url 'task_detail' task.id %}">
+                    <h2>{{ task.title }}</h2>
+                    <p>{{ task.description }}</p>
+                    <p>Asignada a: {{ task.user.username }}</p>
+                    {% if task.important %}
+                        <p>Importante</p>
+                    {% else %}
+                        <p>No importante</p>
+                    {% endif %}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
+///////////////Actualizar tarea//////////////
+*El task_detail.html queda de la siguiente manera:
+
+{% extends 'layouts/base.html' %}
+{% block content %}
+
+<h1>{{task.title}}</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    {{form.as_p}}
+
+    <button>
+        Actualizar
+    </button>
+</form>
+
+{% endblock %}
+
+*La view queda asi:
+
+def task_detail(request,task_id):
+    if request.method == 'GET':
+        task = get_object_or_404(Task, pk=task_id, user=request.user) # Obtiene la tarea por id e importa el modelo task y filtra por usuario
+        form = TaskForm(instance=task) # Crea una instancia del formulario TaskForm
+        return render(request,'task_detail.html',{
+            'task':task,
+            'form':form
+        })
+    else:
+        try:
+            task = get_object_or_404(Task, pk=task_id, user=request.user) # Obtiene la tarea por id e importa el modelo task y filtra por usuario
+            form = TaskForm(request.POST, instance=task) # Crea una instancia del formulario TaskForm
+            form.save()
+            return redirect('tasks')
+        except ValueError: 
+            return render(request,'task_detail.html',{
+                'task':task,
+                'form':form,
+                'error':'Los datos del formulario no son válidos',
+            })
+
+/////////////COMPLETA Y ELIMINAR////////////////
+
+**En el urls.py agregamos 2 nuevas rutas:
+
+    path('tasks/<int:task_id>/complete', views.complete_task, name='complete_task'), # Agrega la ruta para completar una tarea
+    path('tasks/<int:task_id>/delete', views.delete_task, name='delete_task'), # Agrega la ruta para eliminar una tarea
+
+
+**la vista task_detail.html agregamos los forms para actualizar y eliminar:
+{% extends 'layouts/base.html' %}
+{% block content %}
+
+<h1>{{task.title}}</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    {{form.as_p}}
+
+    <button>
+        Actualizar
+    </button>
+</form>
+
+<form action="{% url 'complete_task' task.id %}" method="POST">
+    {% csrf_token %}
+    <button>
+        Completada
+    </button>
+</form>
+
+<form action="{% url 'delete_task' task.id %}" method="POST">
+    {% csrf_token %}
+    <button>
+        Borrar
+    </button>
+</form>
+
+{% endblock %}
+
+**En views, agregamos las 2 funciones de editar y eliminar son muy similares:
+
+def complete_task(request,task_id):
+    task = get_object_or_404(Task, pk=task_id, user=request.user) # Obtiene la tarea por id e importa el modelo task y filtra por usuario
+    if request.method == 'POST':
+        task.datecompleted = timezone.now()
+        task.save()
+        return redirect('tasks')
+    
+def delete_task(request,task_id):
+    task = get_object_or_404(Task, pk=task_id, user=request.user) # Obtiene la tarea por id e importa el modelo task y filtra por usuario
+    if request.method == 'POST':
+        task.delete()
+        return redirect('tasks')
+
+***NO OLVIDAR IMPORTAR , para el timezone
+from django.utils import timezone # Importa el módulo timezone
+
+/////////LISTAR TAREAS COMPLETADAS////////
+
+
+*views.py:
+
+def tasks(request):
+    tasks= Task.objects.filter(user=request.user, datecompleted__isnull=True) # Filtra las tareas por usuario
+    return render(request,'tasks.html',
+        {
+        'tasks':tasks,
+        'title':'Pendientes'
+        })
+
+def tasks_completed(request):
+    tasks= Task.objects.filter(user=request.user, datecompleted__isnull=False).order_by('-datecompleted') # Filtra las tareas por usuario y ordena por fecha de creación
+    return render(request,'tasks.html',
+        {
+        'tasks':tasks,
+        'title':'Completadas'
+        })
+
+**tasks.html:
+
+{% extends 'layouts/base.html' %}
+{% block content %}
+    {% if user.is_authenticated %}
+        <h1>Bienvenido {{user.username}}</h1>
+    {% endif %}
+    <h1>Tareas {{title}}</h1>
+    <ul>
+        {% for task in tasks %}
+            <li>
+                <a href="{% url 'task_detail' task.id %}">
+                    <h2>{{ task.title }}</h2>
+                    <p>{{ task.description }}</p>
+                    <p>Asignada a: {{ task.user.username }}</p>
+                    {% if task.important %}
+                        <p>Importante</p>
+                    {% else %}
+                        <p>No importante</p>
+                    {% endif %}
+                    <p>{{task.datecompleted|date:'M j Y:i'}}</p>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
+**base.html:
+            <li><a href="{% url 'tasks' %}">Tareas Pendientes</a></li>
+            <li><a href="{% url 'tasks_completed' %}">Tareas Completadas</a></li>
+            <li><a href="{% url 'create_task'%}">Crear Tarea</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+
+
+**urls:
+
+    path('tasks_completed/', views.tasks_completed, name='tasks_completed'),
+
+///////////////Proteger Rutas//////////////
+*****SUPER IMPORTANTE******
+*Tenemos primero que importar en views.py el decorador:
+
+from django.contrib.auth.decorators import login_required # Importa el decorador login_required
+
+***luego en cada ruta que queremos proteger tenemos que escribir @login_required, por ejemplo en la vista de crear, ver tareas, eliminar tareas etc:
+
+@login_required                        
+def complete_task(request,task_id):
+    task = get_object_or_404(Task, pk=task_id, user=request.user) # Obtiene la tarea por id e importa el modelo task y filtra por usuario
+    if request.method == 'POST':
+        task.datecompleted = timezone.now()
+        task.save()
+        return redirect('tasks')
+
+@login_required
+def delete_task(request,task_id):
+    task = get_object_or_404(Task, pk=task_id, user=request.user) # Obtiene la tarea por id e importa el modelo task y filtra por usuario
+    if request.method == 'POST':
+        task.delete()
+        return redirect('tasks')
+
+@login_required
+def signout(request):
+    logout(request)
+    return redirect('home')
+
+***EN settings.py agregamos la URL del login para que sepa donde esta el loggin la misma aplicacion y entonces nadie pueda entrar sin permiso:
+
+STATIC_URL = 'static/'
+
+LOGIN_URL = '/loging'
+
+***LISTO CON ESO ESTARAN PROTEGIDAS**
+
+///////////////IMPORTANTE BOOTSTRAP///////////////
+**EN EL base.html agregamos la url que nos permitira usar bootstrap sin ningun problema:
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+y de ahi editamos lo que sea necesario
+
+///////////////////////////////////////////////////////////////////
+
+////////////////////DESPLEGAR/////////////////////////
+
+*Registrarnos en RENDER.COM, web services.
+
+*Configurar el proyecto con github, nos dirigimos a settings.py y agregamos el import os, quitamos la secret key, agregamos lo siguiente:
+
+os.environ.get('SECRET_KEY', default='your secret key')
+
+*Cambiamos el debug:
+DEBUG = 'RENDER' not in os.environ
+
+*Agregamos la parte del render_external_hostname:
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+**Agregamos esto dj-database-url en la terminal:
+pip install dj-database-url
+*E importamos
+# Don't forget to import dj-database-url at the beginning of the file
+import dj_database_url
+
+**Agregamos psycopg2-binary, igual en la consola:
+pip install psycopg2-binary
+
+*En databases cambiamos el database:
+DATABASES = {
+    'default': dj_database_url.config(
+        # Feel free to alter this value to suit your needs.
+        default='postgresql://postgres:postgres@localhost:5432/mysite',
+        conn_max_age=600
+    )
+}
+
+**instalamos whitenoise para poder leer archivos estaticos:
+
+pip install whitenoise[brotli]
+
+***Agregamos el middleware:
+    
+'whitenoise.middleware.WhiteNoiseMiddleware',
+
+**Debajo de StaticURL, agregamos lo siguiente:
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/3.0/howto/static-files/
+
+# This setting tells Django at which URL static files are going to be served to the user.
+# Here, they well be accessible at your-domain.onrender.com/static/...
+STATIC_URL = '/static/'
+
+# Following settings only make sense on production and may break development environments.
+if not DEBUG:
+    # Tell Django to copy statics to the `staticfiles` directory
+    # in your application directory on Render.
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+    # Turn on WhiteNoise storage backend that takes care of compressing static files
+    # and creating unique names for each version so they can safely be cached forever.
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+*******Agregamos el archivo build.sh, el cual ejecutara los comandos necesarios en el servidor:
+
+#!/usr/bin/env bash
+# exit on error
+set -o errexit
+
+#poetry install
+
+python manage.py collectstatic --no-input
+python manage.py migrate
+
+****Con la GIT BASH ejecutamos le siguiente comando:
+chmod a+x build.sh
+
+**Instalamos gunicorn
+pip install gunicorn
+
+
+***Ejecutamos el comando:
+pip freeze > requirements.txt
+
+****EN EL build.sh agregamos:
+
+#!/usr/bin/env bash
+# exit on error
+set -o errexit
+
+#poetry install
+
+pip install -r requirements.txt
+
+python manage.py collectstatic --no-input
+python manage.py migrate
+
+
+
+
+
+
+
+
+
+
+
