@@ -2,24 +2,35 @@
 {% block content %}
 
 <main class="container py-5">
-    <section class="card card-body">
-        <h1 class="display-1 text-center">APLICACION DINAMICA DJANGO</h1>
-        <p class="lead text-center">Esta es una aplicacion dinamica desarrollada en Django</p>
-        <h2 class="display-1 text-center">Creada por Saul Gutierrez</h2>
-        <p class="lead text-center">Esta aplicacion permite crear tareas, editarlas y eliminarlas, el cual esta basado en el tutorial de youtube Django CRUD con Autenticacion y Despliegue Gratuito (Login,Register, Rutas protegidas, y mas)</p>
-        <p class="text-center"><a href="https://youtu.be/e6PkGDH4wWA"> Creditos y Enlace del video</a></p>
+    
+    <div class="row">
+        <div class="col">
+            <section class="card card-body">
+                <h1 class="display-3 text-center">APLICACION DINAMICA DJANGO</h1>
+                <p class="lead text-center">Esta es una aplicacion dinamica desarrollada en Django</p>
+                <h2 class="display-8 text-center">Creada por Saul Gutierrez</h2>
+                <p class="lead text-center">Esta aplicacion permite crear tareas, editarlas y eliminarlas, el cual esta basado en el tutorial de youtube Django CRUD con Autenticacion y Despliegue Gratuito (Login,Register, Rutas protegidas, y mas)</p>
+                <p class="text-center"><a href="https://youtu.be/e6PkGDH4wWA"> Creditos y Enlace del video</a></p>
 
-    <div class="text-center">
-        <a class="btn btn-info" href="/login/">
-            Ingresar
-        </a>
-        <a class="btn btn-primary" href="/signup/">
-            Registrarse
-        </a>
+                <div class="text-center">
+                    <a class="btn btn-info" href="/login/">
+                        Ingresar
+                    </a>
+                    <a class="btn btn-primary" href="/signup/">
+                        Registrarse
+                    </a>
+                </div>
+            </section>
+        </div>
+        <div class="col">
+            <section class="card card-body">
+                <h1 class="display-3 text-center">FUNCIONALIDAD API REST INCLUIDA</h1>
+                <p class="lead text-center">AQUI PUEDES CONSULTAR LA FUNCIONALIDAD API REST, PARA MODIFICAR O AGREGAR ALGO EN TAKS, ES NECESARIO REGISTRARTE Y LOGUEARTE</p>
+                <P class="lead text-center"> PARA PROJECTS, PUEDES HACERLO SIN LOGUEARTE</P>
+                <a class="lead text-center" href="/REST">DA CLICK AQUI O EN EL MENU PARA ENTRAR</a>
+            </section>
+        </div>
     </div>
-
-    </section>
-
 
 </main>
 
