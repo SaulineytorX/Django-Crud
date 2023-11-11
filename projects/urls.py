@@ -6,7 +6,7 @@ from .api import ProjectViewSet, TaskViewSet
 router = routers.DefaultRouter()
 
 router.register('api/projects', ProjectViewSet, 'projects')
-router.register('api/tasks', views.TaskViewSet, 'tasks')
+router.register('api/tasks', TaskViewSet, 'tasks')
 
 urlpatterns = router.urls
 

@@ -1,4 +1,5 @@
-from .models import Project, Task
+from .models import Project
+from tasks.models import Task
 from rest_framework import viewsets, permissions
 from .serializers import ProjectSerializer, TaskSerializer
 
