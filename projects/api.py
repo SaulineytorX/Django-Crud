@@ -10,5 +10,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = TaskSerializer # se importa de serializers.py
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)  # Asigna el usuario actual al campo 'user' al crear la tarea
