@@ -42,7 +42,7 @@ def signup(request):
 @login_required       
 def tasks(request):
     tasks= Task.objects.filter(user=request.user, datecompleted__isnull=True) # Filtra las tareas por usuario
-    return render(request,'tasks.html',
+    return render(request,'tasks/tasks.html',
         {
         'tasks':tasks,
         'title':'Pendientes'
@@ -51,7 +51,7 @@ def tasks(request):
 @login_required
 def tasks_completed(request):
     tasks= Task.objects.filter(user=request.user, datecompleted__isnull=False).order_by('-datecompleted') # Filtra las tareas por usuario y ordena por fecha de creación
-    return render(request,'tasks.html',
+    return render(request,'tasks/tasks.html',
         {
         'tasks':tasks,
         'title':'Completadas'
@@ -60,7 +60,7 @@ def tasks_completed(request):
 @login_required
 def create_task(request):  
     if request.method == 'GET':
-        return render(request,'create_task.html',{
+        return render(request,'tasks/create_task.html',{
             'form':TaskForm
         })
     else:  
@@ -71,7 +71,7 @@ def create_task(request):
             newtask.save()
             return redirect('tasks')
         except ValueError: 
-            return render(request,'create_task.html',{
+            return render(request,'tasks/create_task.html',{
                 'form':TaskForm,
                 'error':'Los datos del formulario no son válidos',
             })
@@ -81,7 +81,7 @@ def task_detail(request,task_id):
     if request.method == 'GET':
         task = get_object_or_404(Task, pk=task_id, user=request.user) # Obtiene la tarea por id e importa el modelo task y filtra por usuario
         form = TaskForm(instance=task) # Crea una instancia del formulario TaskForm
-        return render(request,'task_detail.html',{
+        return render(request,'tasks/task_detail.html',{
             'task':task,
             'form':form
         })

@@ -45,7 +45,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tasks'
+    'tasks',
+    'projects',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -158,3 +160,9 @@ LOGIN_URL = '/loging'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+try:
+    # Importar la configuración de desarrollo.
+    from .settings_dev import *
+except ModuleNotFoundError:
+    # Ignorar el error si el archivo no se encuentra.
+    pass
