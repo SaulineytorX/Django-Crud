@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from rest_framework import routers
-from .api import ProjectViewSet
+from .api import ProjectViewSet, TaskViewSet
 
 router = routers.DefaultRouter()
 
