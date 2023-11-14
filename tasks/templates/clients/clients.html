@@ -1,0 +1,80 @@
+{% extends 'layouts/base.html' %} 
+{% block content %}
+<main class="container">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            {% if user.is_authenticated %}
+                <h1 class="text-center">Bienvenido {{ user.username }}</h1>
+            {% endif %}
+            <h1 class="text-center display-3 py-2">Clientes</h1>
+            <div class="d-flex justify-content-end mb-3">
+                <a class="btn btn-primary" id="create-client">Crear Cliente</a>
+            </div>
+            
+        </div>
+    </div>
+    <div class="vh-100 overflow-auto" id="clients-content"></div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function loadClientsView() {
+            fetch('{% url "view_clients" %}')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('clients-content').innerHTML = data;
+                });
+        }
+    
+        loadClientsView();
+    
+        document.getElementById('create-client').addEventListener('click', function () {
+            fetch('{% url "create_client" %}')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('clients-content').innerHTML = data;
+
+                    const form = document.querySelector('#clients-content form');
+                    form.addEventListener('submit', function (e) {
+                        e.preventDefault();
+                        const formData = new FormData(this);
+
+                        fetch('{% url "create_client" %}', {
+                            method: 'POST',
+                            body: formData
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    return response.text();
+                                } else {
+                                    return response.json().then(data => {
+                                        throw new Error(JSON.stringify(data.errors));
+                                    });
+                                }
+                            })
+                            .then(data => {
+                                if (data.includes('error-message')) {
+                                    document.getElementById('clients-content').innerHTML = data;
+                                } else {
+                                    alert('El formulario se procesó correctamente');
+                                    loadClientsView();
+                                }
+                            })
+                            .catch(err => {
+                                let errors = JSON.parse(err.message);
+                                for (let fieldName in errors) {
+                                    let field = form.querySelector(`[name=${fieldName}]`);
+                                    if (field) {
+                                        let errorContainer = field.parentElement.querySelector('.error-message');
+                                        errorContainer.innerHTML = errors[fieldName][0].message;
+                                    }
+                                }
+                                document.getElementById('clients-content').innerHTML = form.outerHTML; // This line reloads the form with error messages
+                            });
+                    });
+                });
+        });
+    });
+</script>
+
+{% endblock %}

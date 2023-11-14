@@ -1,0 +1,78 @@
+{% extends 'layouts/base_forms.html' %} 
+{% block content %}
+<main class="container">
+    <form method="POST" class="card card-body mt-2"> 
+        {% csrf_token %}
+        {% if error %}
+            <p>{{ error }}</p>
+        {% endif %}
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="names" class="form-label">Nombres</label>
+                <input type="text" class="form-control" id="names" name="names">
+                {% if errors.names %}
+                    {% for error in errors.names %}
+                        <p class="error-message">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label for="apellidos" class="form-label">Apellidos</label>
+                <input type="text" class="form-control" id="apellidos" name="apellidos">
+                {% if errors.apellidos %}
+                    {% for error in errors.apellidos %}
+                        <p class="error-message">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="edad" class="form-label">Edad</label>
+                <input type="number" class="form-control" id="edad" name="edad">
+                {% if errors.edad %}
+                    {% for error in errors.edad %}
+                        <p class="error-message">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label for="telefono" class="form-label">Teléfono</label>
+                <input type="tel" class="form-control" id="telefono" name="telefono">
+                {% if errors.telefono %}
+                    {% for error in errors.telefono %}
+                        <p class="error-message">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email">
+                {% if errors.email %}
+                    {% for error in errors.email %}
+                        <p class="error-message">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label for="nota" class="form-label">Nota</label>
+                <textarea class="form-control" id="nota" name="nota" rows="3"></textarea>
+                {% if errors.nota %}
+                    {% for error in errors.nota %}
+                        <p class="error-message">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </form>
+</main>
+{% endblock %}

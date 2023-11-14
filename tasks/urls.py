@@ -12,5 +12,18 @@ urlpatterns = [
     path('tasks/<int:task_id>/delete', views.delete_task, name='delete_task'), # Agrega la ruta para eliminar una tarea
     path('logout/', views.signout, name='logout'),
     path('login/',views.loginuser,name='login'),
+    #VIEWS CLIENTS
+    path('clients/', views.clients, name='clients'),
+    path('clients/view_clients', views.clients_view, name='view_clients'),
+    path('clients/create', views.create_clients, name='create_client'),
+    path('clients/<int:client_id>/', views.client_detail, name='client_detail'), # Agrega la ruta para editar un cliente
+    
+    path('clients/<int:client_id>/delete', views.delete_clients, name='delete_client'),
+    
+    
+    #path('clients/<int:client_id>/', views.client_detail, name='client_detail'), # Agrega la ruta para editar un cliente
+    #path('clients/<int:client_id>/delete', views.delete_client, name='delete_client'), # Agrega la ruta para eliminar un cliente
+    #path('clients/<int:client_id>/edit', views.edit_client, name='edit_client'), # Agrega la ruta para editar un cliente
+    
 ]
 

@@ -10,4 +10,18 @@ class Task(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE) # on_delete=models.CASCADE permite que al eliminar un usuario se eliminen todas sus tareas
     
     def __str__(self):
-        return self.title + ' - by ' + str(self.user.username)
+        return self.title + ' - by ' + str(self.user.username) # str(self.user.username) permite que se muestre el nombre de usuario en vez del id
+    
+    
+class Clients(models.Model):
+    names = models.CharField(max_length=50)
+    apellidos = models.CharField(max_length=50)
+    edad = models.IntegerField()
+    telefono = models.BigIntegerField(15)
+    email = models.EmailField(max_length=1000)
+    nota = models.TextField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    
+    
+    def __str__(self):
+        return self.name + ' - ' + self.email
